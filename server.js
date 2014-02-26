@@ -4,6 +4,9 @@ var fs   = require('fs');
 var http = require('http');
 
 var mime = require('mime');
+var Encoder = require('node-html-encoder').Encoder;
+
+var encoder = new Encoder('entity');
 
 var server = http.createServer(router).listen(7357);
 
@@ -64,9 +67,14 @@ function apiHandler (req, res) {
 
     req.on('end', function () {
       try {
-        data = JSON.stringify(JSON.parse(data));
+        data = JSON.parse(data);
+        data.forEach(function (datum) {
+           datum.description = encoder.htmlEncode(datum.description);
+         });
+        data = JSON.stringify(data);
       } catch (err) {
-        data = null;
+        console.error(err);
+        data = '[]';
       }
 
       if (!data) return res.end();

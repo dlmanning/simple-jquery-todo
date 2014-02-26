@@ -9,6 +9,7 @@
   "author": "David Manning",
   "license": "ISC",
   "dependencies": {
-    "mime": "~1.2.11"
+    "mime": "~1.2.11",
+    "node-html-encoder": "0.0.2"
   }
 }
