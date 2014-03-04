@@ -10,6 +10,12 @@
   "license": "ISC",
   "dependencies": {
     "mime": "~1.2.11",
-    "node-html-encoder": "0.0.2"
+    "node-html-encoder": "0.0.2",
+    "level": "~0.18.0",
+    "routes": "~0.2.0",
+    "concat-stream": "^1.4.1"
+  },
+  "jshintConfig": {
+    "laxcomma": true
   }
 }

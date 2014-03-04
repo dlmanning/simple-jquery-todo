@@ -1,50 +1,52 @@
 $(function () { // on ready!
 
+  var app = {};
   var todos = [];
+  app.todos = todos;
 
-  $.getJSON('/api/data', function (data) {
+  $.getJSON('/api/todos', function (data) {
     data.forEach(function (item) {
-      todos.push(new Todo(item.description, post, item.done));
+      var todo = new Todo(item.description, item.done);
+      todo.id = item.id;
+      todos.push(todo);
     });
-    whenTodosAreLoaded();
-  });
+  }).always(whenTodosAreLoaded);
 
   function whenTodosAreLoaded () {
     renderTodos(todos);
 
     $('#clear-completed').click(function () {
-      var remainingTodos = [];
       todos.forEach(function (todo) {
-        if (todo.done === false) {
-          remainingTodos.push(todo);
+        if (todo.done === true) {
+          $.ajax('/api/todos/' + todo.id, {
+            type: 'DELETE',
+          });
         }
       });
-
-      todos = remainingTodos;
-      post();
     });
 
     $('#add-new-todo').click(function () {
       var $newTodo = $('#new-todo');
-      var newTodo = $newTodo.val();
+      var newTodo = {};
+      newTodo.description = $newTodo.val();
+      newTodo.done = false;
+
+      $newTodo.val('');
+
       if (newTodo) {
-        todos.push(new Todo(newTodo, post));
-        $newTodo.val('');
-        post();
+        $.post('/api/todos/add', JSON.stringify(newTodo), function (data) {
+          console.log(data);
+          var todo = new Todo(data.description, data.done);
+          todo.id = data.id;
+          todos.push(todo);
+
+          renderTodos(todos);
+        });
       }
     });
   }
 
-  function post () {
-    $.post('/api/data', JSON.stringify(todos), function (data) {
-      var returnedTodos = [];
-      data.forEach(function (item) {
-        returnedTodos.push(new Todo(item.description, post, item.done));
-      });
-      todos = returnedTodos;
-      renderTodos(todos);
-    });
-  }
+  window.app = app;
 
 });
 
@@ -77,13 +79,17 @@ function renderTodos (todos) {
 
 }
 
-function Todo (description, onUpdate, done) {
+function Todo (description, done, onUpdate) {
   this.description = description || "Get the milk";
-  this.modelUpdated = onUpdate || function () {};
   this.done = done || false;
 }
+
+Todo.prototype.modelUpdated = function () {
+  var self = this;
+  $.post('/api/todos/' + this.id, JSON.stringify(this));
+};
 
 Todo.prototype.toggleDone = function () {
   this.done = !this.done;
   this.modelUpdated();
-}
+};
